@@ -1,0 +1,49 @@
+{
+  "version": "1.26.2",
+  "description": "Zed Editor (Localized / 汉化版)",
+  "homepage": "https://github.com/wenyinos/ZedG",
+  "license": "GPL-3.0-only",
+  "architecture": {
+    "64bit": {
+      "url": "https://github.com/wenyinos/ZedG/releases/download/v1.26.2/zedg-zh-cn-windows-x86_64-v1.26.2.zip",
+      "hash": "5dd16ffae0f39b034a6ab129df98a8b8b0500cde78f8ea9eab321fee10f17d2e"
+    },
+    "arm64": {
+      "url": "https://github.com/wenyinos/ZedG/releases/download/v1.26.2/zedg-zh-cn-windows-aarch64-v1.26.2.zip",
+      "hash": "4540282379167b0e58452d2c517633490718bf4bb777a7f0d76650841d72e1ea"
+    }
+  },
+  "bin": [
+    [
+      "bin\\ZedG.exe",
+      "zedg"
+    ]
+  ],
+  "shortcuts": [
+    [
+      "ZedG.exe",
+      "ZedG"
+    ]
+  ],
+  "checkver": {
+    "github": "https://github.com/wenyinos/ZedG"
+  },
+  "autoupdate": {
+    "architecture": {
+      "64bit": {
+        "url": "https://github.com/wenyinos/ZedG/releases/download/v$version/zedg-zh-cn-windows-x86_64-v$version.zip",
+        "hash": {
+          "url": "https://github.com/wenyinos/ZedG/releases/download/v$version/sha256sums.txt",
+          "regex": "([a-f0-9]{64})\\s+zedg-zh-cn-windows-x86_64-v\\$version\\.zip"
+        }
+      },
+      "arm64": {
+        "url": "https://github.com/wenyinos/ZedG/releases/download/v$version/zedg-zh-cn-windows-aarch64-v$version.zip",
+        "hash": {
+          "url": "https://github.com/wenyinos/ZedG/releases/download/v$version/sha256sums.txt",
+          "regex": "([a-f0-9]{64})\\s+zedg-zh-cn-windows-aarch64-v\\$version\\.zip"
+        }
+      }
+    }
+  }
+}
