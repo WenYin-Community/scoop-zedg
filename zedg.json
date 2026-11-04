@@ -6,11 +6,11 @@
   "architecture": {
     "64bit": {
       "url": "https://github.com/wenyinos/ZedG/releases/download/v1.26.2/zedg-zh-cn-windows-x86_64-v1.26.2.zip",
-      "hash": "5dd16ffae0f39b034a6ab129df98a8b8b0500cde78f8ea9eab321fee10f17d2e"
+      "hash": "1a68c9502f0c6dc942ea5128863bfacd9cc48bfd2ab7688e519f2cf690cd13f6"
     },
     "arm64": {
       "url": "https://github.com/wenyinos/ZedG/releases/download/v1.26.2/zedg-zh-cn-windows-aarch64-v1.26.2.zip",
-      "hash": "4540282379167b0e58452d2c517633490718bf4bb777a7f0d76650841d72e1ea"
+      "hash": "0019dfc4b32d63c1392aa264aed2253c1e0c2fb09216f8e2cc269bbfb8bb49b5"
     }
   },
   "bin": [
