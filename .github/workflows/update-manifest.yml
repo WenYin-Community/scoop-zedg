@@ -1,0 +1,80 @@
+name: 更新 Manifest
+
+# 从 WenYin-Community/ZedG 最新 Release 自动更新 Scoop manifest。
+# 仅使用本仓库的 GITHUB_TOKEN，无需跨仓库 PAT。
+
+on:
+  schedule:
+    - cron: "0 3 * * *" # UTC 03:00（GitHub schedule 可能延迟）
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    env:
+      UPSTREAM: WenYin-Community/ZedG
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 生成 manifest
+        run: |
+          TAG=$(curl -sf "https://api.github.com/repos/${UPSTREAM}/releases/latest" | jq -r .tag_name)
+          [ -n "$TAG" ] && [ "$TAG" != "null" ] || { echo "::error::无法获取上游最新版本"; exit 1; }
+          echo "上游版本: $TAG"
+          CLEAN="${TAG#v}"
+          BASE="https://github.com/${UPSTREAM}/releases/download/${TAG}"
+          URL_X64="${BASE}/zedg-zh-cn-windows-x86_64-${TAG}.zip"
+          URL_ARM64="${BASE}/zedg-zh-cn-windows-aarch64-${TAG}.zip"
+
+          HASH_X64=$(tmp=$(mktemp); curl -sfL -o "$tmp" "$URL_X64"; sha256sum "$tmp" | awk '{print $1}'; rm -f "$tmp")
+          HASH_ARM64=$(tmp=$(mktemp); curl -sfL -o "$tmp" "$URL_ARM64"; sha256sum "$tmp" | awk '{print $1}'; rm -f "$tmp")
+
+          MANIFEST=$(jq -n \
+            --arg version "$CLEAN" \
+            --arg desc "Zed Editor (Localized / 汉化版)" \
+            --arg homepage "https://github.com/${UPSTREAM}" \
+            --arg url_x64 "$URL_X64" \
+            --arg hash_x64 "$HASH_X64" \
+            --arg au_x64_url "https://github.com/${UPSTREAM}/releases/download/v\$version/zedg-zh-cn-windows-x86_64-v\$version.zip" \
+            --arg au_hash "https://github.com/${UPSTREAM}/releases/download/v\$version/sha256sums.txt" \
+            --arg au_x64_regex '([a-f0-9]{64})\s+zedg-zh-cn-windows-x86_64-v\$version\.zip' \
+            '{
+              version: $version, description: $desc, homepage: $homepage,
+              license: "GPL-3.0-only",
+              architecture: {"64bit": {url: $url_x64, hash: $hash_x64}},
+              bin: [["bin\\ZedG.exe", "zedg"]],
+              shortcuts: [["ZedG.exe", "ZedG"]],
+              checkver: {github: $homepage},
+              autoupdate: {architecture: {"64bit": {
+                url: $au_x64_url,
+                hash: {url: $au_hash, regex: $au_x64_regex}
+              }}}
+            }')
+
+          MANIFEST=$(echo "$MANIFEST" | jq \
+            --arg url "$URL_ARM64" --arg hash "$HASH_ARM64" \
+            --arg au_url "https://github.com/${UPSTREAM}/releases/download/v\$version/zedg-zh-cn-windows-aarch64-v\$version.zip" \
+            --arg au_hash "https://github.com/${UPSTREAM}/releases/download/v\$version/sha256sums.txt" \
+            --arg au_regex '([a-f0-9]{64})\s+zedg-zh-cn-windows-aarch64-v\$version\.zip' \
+            '.architecture.arm64 = {url: $url, hash: $hash} |
+             .autoupdate.architecture.arm64 = {url: $au_url, hash: {url: $au_hash, regex: $au_regex}}')
+
+          echo "$MANIFEST" > zedg.json
+          echo "--- zedg.json ---"
+          cat zedg.json
+
+      - name: 提交更新
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add zedg.json
+          if git diff --cached --quiet; then
+            echo "Manifest 无变化"
+          else
+            V=$(jq -r .version zedg.json)
+            git commit -m "chore: 更新到 v${V}"
+            git push
+          fi
